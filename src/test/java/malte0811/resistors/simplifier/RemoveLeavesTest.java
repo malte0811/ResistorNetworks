@@ -1,12 +1,10 @@
 package malte0811.resistors.simplifier;
 
-import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
 import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
-import malte0811.resistors.data.ResistorNetwork;
-import malte0811.resistors.data.VoltageMap;
+import malte0811.resistors.data.MutableNetwork;
+import malte0811.resistors.data.MutableVoltageMap;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,7 +17,7 @@ class RemoveLeavesTest {
 
     @Test
     public void testLeafRemoval() {
-        final var network = new ResistorNetwork<String>();
+        final var network = new MutableNetwork<String>();
         final var centerA = "centerA";
         final var centerB = "centerB";
         final var centerC = "centerC";
@@ -40,7 +38,7 @@ class RemoveLeavesTest {
 
         assertTrue(SIMPLIFIER.simplify(simplified).isEmpty());
 
-        final var simplifiedMap = new VoltageMap<>(new Object2DoubleOpenHashMap<String>());
+        final var simplifiedMap = new MutableVoltageMap<>(new Object2DoubleOpenHashMap<String>());
         simplifiedMap.voltage().put(centerA, 1);
         simplifiedMap.voltage().put(centerB, 0.5);
         simplifiedMap.voltage().put(centerC, 0);
@@ -54,7 +52,7 @@ class RemoveLeavesTest {
 
     @Test
     public void testFixedLeaf() {
-        final var network = new ResistorNetwork<String>();
+        final var network = new MutableNetwork<String>();
         final var center = "centerA";
         network.addResistor(LEAF_1, center, 1)
                 .addResistor(LEAF_2, center, 1)

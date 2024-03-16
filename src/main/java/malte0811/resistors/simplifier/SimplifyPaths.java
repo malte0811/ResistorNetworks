@@ -4,11 +4,11 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import malte0811.resistors.data.ReadOnlyNetwork;
-import malte0811.resistors.data.ReadOnlyNetwork.ResistorEdge;
-import malte0811.resistors.data.ReadOnlyVoltageMap;
-import malte0811.resistors.data.SimplificationStep;
+import malte0811.resistors.data.ResistorNetwork;
+import malte0811.resistors.data.ResistorNetwork.ResistorEdge;
 import malte0811.resistors.data.VoltageMap;
+import malte0811.resistors.data.SimplificationStep;
+import malte0811.resistors.data.MutableVoltageMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
     @Override
-    public Optional<SimplificationStep<NodeKey>> simplify(ReadOnlyNetwork<NodeKey> fullNetwork) {
+    public Optional<SimplificationStep<NodeKey>> simplify(ResistorNetwork<NodeKey> fullNetwork) {
         // TODO simplify all paths at once? Need to be careful: endpoints of earlier paths can vanish later
         for (final var node : fullNetwork.getNodes()) {
             if (isValidInnerNode(fullNetwork, node)) {
@@ -31,7 +31,7 @@ public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
         return Optional.empty();
     }
 
-    private SimplificationStep<NodeKey> contractPath(ReadOnlyNetwork<NodeKey> net, Path<NodeKey> path) {
+    private SimplificationStep<NodeKey> contractPath(ResistorNetwork<NodeKey> net, Path<NodeKey> path) {
         final var simplifiedNet = net.copy();
         for (final var internalNode : path.innerVertices) {
             simplifiedNet.removeNode(internalNode);
@@ -40,7 +40,7 @@ public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
         return new SimplificationStep<>(simplifiedNet, v -> v, v -> this.extendToPath(v, path));
     }
 
-    private VoltageMap<NodeKey> extendToPath(ReadOnlyVoltageMap<NodeKey> contracted, Path<NodeKey> path) {
+    private MutableVoltageMap<NodeKey> extendToPath(VoltageMap<NodeKey> contracted, Path<NodeKey> path) {
         final var baseVoltage = contracted.getVoltage(path.start);
         final var voltageDifference = contracted.getVoltage(path.end) - baseVoltage;
         double resistanceSoFar = 0;
@@ -53,7 +53,7 @@ public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
         return extended;
     }
 
-    private Path<NodeKey> discoverPath(ReadOnlyNetwork<NodeKey> net, NodeKey start, ResistorEdge<NodeKey> firstEdge) {
+    private Path<NodeKey> discoverPath(ResistorNetwork<NodeKey> net, NodeKey start, ResistorEdge<NodeKey> firstEdge) {
         // This cannot run into infinite cycles: We guarantee that there is a voltage source, and we guarantee that the
         // network is connected. The only case where this would cycle is an isolated cycle without sources.
         List<NodeKey> innerNodes = new ArrayList<>();
@@ -77,7 +77,7 @@ public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
         return new Path<>(start, innerNodes, lastEdge.otherEnd(), resistances, resistances.doubleStream().sum());
     }
 
-    private boolean isValidInnerNode(ReadOnlyNetwork<NodeKey> net, NodeKey node) {
+    private boolean isValidInnerNode(ResistorNetwork<NodeKey> net, NodeKey node) {
         return !net.isFixed(node) && net.getIncidentResistors(node).size() == 2;
     }
 
