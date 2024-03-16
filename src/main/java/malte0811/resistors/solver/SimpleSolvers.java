@@ -7,6 +7,15 @@ import malte0811.resistors.data.ResistorNetwork;
 import java.util.Optional;
 
 public class SimpleSolvers<NodeKey> {
+    public Optional<NetworkTransformation<NodeKey>> maybeSolve(ResistorNetwork<NodeKey> net) {
+        final var fewSources = solveFewSources(net);
+        if (fewSources.isPresent()) {
+            return fewSources;
+        } else {
+            return solveAllFixed(net);
+        }
+    }
+
     public Optional<NetworkTransformation<NodeKey>> solveFewSources(ResistorNetwork<NodeKey> net) {
         final var sources = net.getFixedNodes();
         final MutableLinearCombination<NodeKey> voltageEverywhere;

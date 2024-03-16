@@ -57,7 +57,6 @@ public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
         // This cannot run into infinite cycles: We guarantee that there is a voltage source, and we guarantee that the
         // network is connected. The only case where this would cycle is an isolated cycle without sources.
         List<NodeKey> innerNodes = new ArrayList<>();
-        innerNodes.add(start);
         DoubleList resistances = new DoubleArrayList();
         resistances.add(firstEdge.resistance());
         var lastInnerNode = start;
@@ -88,6 +87,10 @@ public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
             DoubleList resistances,
             double totalResistance
     ) {
+        public Path {
+            Preconditions.checkArgument(innerVertices.size() == resistances.size() - 1);
+        }
+
         public Path<NodeKey> prependReversed(Path<NodeKey> toPrepend) {
             Preconditions.checkArgument(Objects.equals(start, toPrepend.start));
             List<NodeKey> newInnerVertices = new ArrayList<>(Lists.reverse(toPrepend.innerVertices));

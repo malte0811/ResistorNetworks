@@ -22,13 +22,17 @@ public record NetworkTransformation<NodeKey>(
 
     public LinearCombination<NodeKey> inOriginalNetwork(LinearCombination<NodeKey> afterTransform) {
         var result = new MutableLinearCombination<NodeKey>();
-        for (final var entry : afterTransform.coefficients().object2DoubleEntrySet()) {
+        for (final var entry : afterTransform.getCoefficients().object2DoubleEntrySet()) {
             result.addScaled(
                     Objects.requireNonNull(this.voltageMap.get(entry.getKey())),
                     entry.getDoubleValue()
             );
         }
         return result;
+    }
+
+    public LinearCombination<NodeKey> get(NodeKey key) {
+        return voltageMap().get(key);
     }
 
     public static <NodeKey> NetworkTransformation<NodeKey> identity(ResistorNetwork<NodeKey> net) {

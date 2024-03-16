@@ -13,5 +13,7 @@ public interface LinearCombination<NodeKey> {
     double applyTo(Object2DoubleMap<NodeKey> vector);
 
     @Nonnull
-    Object2DoubleMap<NodeKey> coefficients();
+    Object2DoubleMap<NodeKey> getCoefficients();
+
+    double get(NodeKey key);
 }
