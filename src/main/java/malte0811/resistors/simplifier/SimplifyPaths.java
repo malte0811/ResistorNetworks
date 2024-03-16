@@ -4,11 +4,8 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import it.unimi.dsi.fastutil.doubles.DoubleArrayList;
 import it.unimi.dsi.fastutil.doubles.DoubleList;
-import malte0811.resistors.data.ResistorNetwork;
+import malte0811.resistors.data.*;
 import malte0811.resistors.data.ResistorNetwork.ResistorEdge;
-import malte0811.resistors.data.VoltageMap;
-import malte0811.resistors.data.SimplificationStep;
-import malte0811.resistors.data.MutableVoltageMap;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,20 +34,23 @@ public class SimplifyPaths<NodeKey> implements NetworkSimplifier<NodeKey> {
             simplifiedNet.removeNode(internalNode);
         }
         simplifiedNet.addResistor(path.start, path.end, path.totalResistance);
-        return new SimplificationStep<>(simplifiedNet, v -> v, v -> this.extendToPath(v, path));
+        return new SimplificationStep<>(
+                simplifiedNet, NetworkTransformation.identity(simplifiedNet), this.extendToPath(simplifiedNet, path)
+        );
     }
 
-    private MutableVoltageMap<NodeKey> extendToPath(VoltageMap<NodeKey> contracted, Path<NodeKey> path) {
-        final var baseVoltage = contracted.getVoltage(path.start);
-        final var voltageDifference = contracted.getVoltage(path.end) - baseVoltage;
+    private NetworkTransformation<NodeKey> extendToPath(ResistorNetwork<NodeKey> contracted, Path<NodeKey> path) {
+        final var result = NetworkTransformation.identity(contracted);
         double resistanceSoFar = 0;
-        final var extended = contracted.copy();
         for (int i = 0; i < path.innerVertices.size(); ++i) {
             resistanceSoFar += path.resistances.getDouble(i);
-            final var voltageHere = baseVoltage + voltageDifference * resistanceSoFar / path.totalResistance;
-            extended.voltage().put(path.innerVertices.get(i), voltageHere);
+            final var lambda = resistanceSoFar / path.totalResistance;
+            result.voltageMap().put(
+                    path.innerVertices.get(i),
+                    MutableLinearCombination.simple(path.start, 1 - lambda).add(path.end, lambda)
+            );
         }
-        return extended;
+        return result;
     }
 
     private Path<NodeKey> discoverPath(ResistorNetwork<NodeKey> net, NodeKey start, ResistorEdge<NodeKey> firstEdge) {

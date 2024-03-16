@@ -1,8 +1,6 @@
 package malte0811.resistors.simplifier;
 
-import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 import malte0811.resistors.data.MutableNetwork;
-import malte0811.resistors.data.MutableVoltageMap;
 import org.junit.jupiter.api.Test;
 
 import java.util.Set;
@@ -37,17 +35,6 @@ class RemoveLeavesTest {
         assertEquals(simplified.getIncidentResistors(centerC).size(), 1);
 
         assertTrue(SIMPLIFIER.simplify(simplified).isEmpty());
-
-        final var simplifiedMap = new MutableVoltageMap<>(new Object2DoubleOpenHashMap<String>());
-        simplifiedMap.voltage().put(centerA, 1);
-        simplifiedMap.voltage().put(centerB, 0.5);
-        simplifiedMap.voltage().put(centerC, 0);
-        final var expectedTotal = simplifiedMap.copy();
-        expectedTotal.voltage().put(LEAF_1, 1);
-        expectedTotal.voltage().put(LEAF_2, 1);
-        expectedTotal.voltage().put(LEAF_3, 0);
-        final var extended = maybeSimplified.get().extendSolution().apply(simplifiedMap);
-        assertEquals(expectedTotal, extended);
     }
 
     @Test

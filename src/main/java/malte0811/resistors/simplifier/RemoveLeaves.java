@@ -24,17 +24,19 @@ public class RemoveLeaves<NodeKey> implements NetworkSimplifier<NodeKey> {
         for (final var leaf : leaves) {
             simplified.removeNode(leaf.leaf);
         }
-        return Optional.of(new SimplificationStep<>(simplified, v -> v, simple -> extendToLeaves(simple, leaves)));
+        return Optional.of(new SimplificationStep<>(
+                simplified, NetworkTransformation.identity(simplified), extendToLeaves(simplified, leaves)
+        ));
     }
 
-    private VoltageMap<NodeKey> extendToLeaves(
-            VoltageMap<NodeKey> simpleSolution, List<Leaf<NodeKey>> leaves
+    private NetworkTransformation<NodeKey> extendToLeaves(
+            ResistorNetwork<NodeKey> simpleNet, List<Leaf<NodeKey>> leaves
     ) {
-        final var extended = simpleSolution.copy();
+        final var result = NetworkTransformation.identity(simpleNet);
         for (final var leaf : leaves) {
-            extended.voltage().put(leaf.leaf, simpleSolution.getVoltage(leaf.neighbor));
+            result.voltageMap().put(leaf.leaf, MutableLinearCombination.simple(leaf.neighbor, 1));
         }
-        return extended;
+        return result;
     }
 
     record Leaf<NodeKey>(NodeKey leaf, NodeKey neighbor) { }

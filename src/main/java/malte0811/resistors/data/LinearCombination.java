@@ -1,28 +1,17 @@
 package malte0811.resistors.data;
 
 import it.unimi.dsi.fastutil.objects.Object2DoubleMap;
-import it.unimi.dsi.fastutil.objects.Object2DoubleOpenHashMap;
 
-import java.util.Objects;
+import javax.annotation.Nonnull;
+import java.util.Map;
 
-public final class LinearCombination<NodeKey> {
-    private final Object2DoubleOpenHashMap<NodeKey> coefficients;
+public interface LinearCombination<NodeKey> {
+    MutableLinearCombination<NodeKey> copy();
 
-    public static <NodeKey> LinearCombination<NodeKey> simple(NodeKey variable, double coefficient) {
-        final var result = new LinearCombination<NodeKey>();
-        result.add(variable, coefficient);
-        return result;
-    }
+    LinearCombination<NodeKey> replaceBy(NodeKey key, LinearCombination<NodeKey> value);
 
-    public LinearCombination(Object2DoubleOpenHashMap<NodeKey> coefficients) { this.coefficients = coefficients; }
+    double applyTo(Object2DoubleMap<NodeKey> vector);
 
-    public LinearCombination() {
-        this(new Object2DoubleOpenHashMap<>());
-    }
-
-    public Object2DoubleMap<NodeKey> coefficients() { return coefficients; }
-
-    public void add(NodeKey key, double amount) {
-        this.coefficients.addTo(key, amount);
-    }
+    @Nonnull
+    Object2DoubleMap<NodeKey> coefficients();
 }

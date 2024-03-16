@@ -23,7 +23,12 @@ public class MutableNetwork<NodeKey> implements ResistorNetwork<NodeKey> {
 
     @Override
     public Collection<NodeKey> getNodes() {
-        return this.resistors.keySet();
+        return Collections.unmodifiableCollection(this.resistors.keySet());
+    }
+
+    @Override
+    public Collection<NodeKey> getFixedNodes() {
+        return Collections.unmodifiableCollection(this.fixedNodes);
     }
 
     @Override
