@@ -18,7 +18,11 @@ public class MutableNetwork<NodeKey> implements ResistorNetwork<NodeKey> {
 
     @Override
     public MutableNetwork<NodeKey> copy() {
-        return new MutableNetwork<>(new HashSet<>(this.fixedNodes), new HashMap<>(this.resistors));
+        final Map<NodeKey, List<ResistorEdge<NodeKey>>> newResistors = new HashMap<>();
+        for (final var entry : resistors.entrySet()) {
+            newResistors.put(entry.getKey(), new ArrayList<>(entry.getValue()));
+        }
+        return new MutableNetwork<>(new HashSet<>(this.fixedNodes), newResistors);
     }
 
     @Override
@@ -55,11 +59,21 @@ public class MutableNetwork<NodeKey> implements ResistorNetwork<NodeKey> {
     public MutableNetwork<NodeKey> removeNode(NodeKey toRemove) {
         this.fixedNodes.remove(toRemove);
         for (final var resistor : getIncidentResistors(toRemove)) {
-            final var fromOtherEnd = this.resistors.get(resistor.otherEnd());
-            fromOtherEnd.removeIf(e -> Objects.equals(e.otherEnd(), toRemove));
+            removeHalfResistor(resistor.otherEnd(), toRemove);
         }
         this.resistors.remove(toRemove);
         return this;
+    }
+
+    public MutableNetwork<NodeKey> removeResistor(NodeKey first, NodeKey second) {
+        removeHalfResistor(first, second);
+        removeHalfResistor(second, first);
+        return this;
+    }
+
+    private void removeHalfResistor(NodeKey from, NodeKey to) {
+        final var fromOtherEnd = this.resistors.get(from);
+        fromOtherEnd.removeIf(e -> Objects.equals(e.otherEnd(), to));
     }
 
     private void addHalfResistor(NodeKey from, NodeKey to, double resistance) {

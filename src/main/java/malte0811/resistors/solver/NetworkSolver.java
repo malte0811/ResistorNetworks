@@ -5,6 +5,7 @@ import malte0811.resistors.data.NetworkTransformation;
 import malte0811.resistors.data.ResistorNetwork;
 import malte0811.resistors.data.SimplificationStep;
 import malte0811.resistors.simplifier.NetworkSimplifier;
+import malte0811.resistors.simplifier.OuterStar;
 import malte0811.resistors.simplifier.RemoveLeaves;
 import malte0811.resistors.simplifier.SimplifyPaths;
 
@@ -15,7 +16,8 @@ import java.util.Optional;
 public class NetworkSolver<NodeKey> {
     private final List<NetworkSimplifier<NodeKey>> simplifiers = List.of(
             new RemoveLeaves<>(),
-            new SimplifyPaths<>()
+            new SimplifyPaths<>(),
+            new OuterStar<>()
     );
     private final SimpleSolvers<NodeKey> simple = new SimpleSolvers<>();
 

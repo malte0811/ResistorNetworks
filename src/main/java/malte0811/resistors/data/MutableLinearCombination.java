@@ -45,8 +45,12 @@ public record MutableLinearCombination<NodeKey>(
         return this;
     }
 
+    public LinearCombination<NodeKey> add(LinearCombination<NodeKey> toAdd) {
+        return addScaled(toAdd, 1);
+    }
+
     @Override
-    public double applyTo(Object2DoubleMap<NodeKey> vector) {
+    public double evaluate(Object2DoubleMap<NodeKey> vector) {
         double result = 0;
         for (final var entry : getCoefficients().object2DoubleEntrySet()) {
             result += entry.getDoubleValue() * vector.getOrDefault(entry.getKey(), 0);
