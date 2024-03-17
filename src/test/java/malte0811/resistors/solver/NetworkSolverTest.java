@@ -30,13 +30,15 @@ class NetworkSolverTest {
                 .addResistor(negative, innerRight, 90);
         network.markFixed(negative).markFixed(positive);
         final var solution = SOLVER.solve(network);
-        assertFixed(solution, positive);
-        assertFixed(solution, negative);
-        assertEqual(Map.of(positive, 0.9, negative, 0.1), solution.get(innerRight));
-        assertEqual(Map.of(positive, 0.5, negative, 0.5), solution.get(innerLeft1));
-        assertEqual(Map.of(positive, 0.5, negative, 0.5), solution.get(leaf));
-        assertEqual(Map.of(positive, 5 / 6., negative, 1 / 6.), solution.get(innerLeft2));
-        assertKirchhoffCurrentLaw(network, solution);
+        assertFalse(solution.usedNodalSolver());
+        final var map = solution.fixedToAll();
+        assertFixed(map, positive);
+        assertFixed(map, negative);
+        assertEqual(Map.of(positive, 0.9, negative, 0.1), map.get(innerRight));
+        assertEqual(Map.of(positive, 0.5, negative, 0.5), map.get(innerLeft1));
+        assertEqual(Map.of(positive, 0.5, negative, 0.5), map.get(leaf));
+        assertEqual(Map.of(positive, 5 / 6., negative, 1 / 6.), map.get(innerLeft2));
+        assertKirchhoffCurrentLaw(network, map);
     }
 
     @Test
@@ -53,14 +55,16 @@ class NetworkSolverTest {
                 .markFixed(leaf2)
                 .markFixed(leaf3);
         final var solution = SOLVER.solve(network);
-        assertFixed(solution, leaf1);
-        assertFixed(solution, leaf2);
-        assertFixed(solution, leaf3);
+        assertFalse(solution.usedNodalSolver());
+        final var voltageMap = solution.fixedToAll();
+        assertFixed(voltageMap, leaf1);
+        assertFixed(voltageMap, leaf2);
+        assertFixed(voltageMap, leaf3);
         assertEqual(
                 Map.of(leaf1, 6 / 11., leaf2, 3 / 11., leaf3, 2 / 11.),
-                solution.get(center)
+                voltageMap.get(center)
         );
-        assertKirchhoffCurrentLaw(network, solution);
+        assertKirchhoffCurrentLaw(network, voltageMap);
     }
 
     @Test
@@ -86,7 +90,30 @@ class NetworkSolverTest {
                 .markFixed(leaf3)
                 .markFixed(leaf4)
                 .markFixed(leaf5);
-        assertKirchhoffCurrentLaw(network, SOLVER.solve(network));
+        final var solution = SOLVER.solve(network);
+        assertFalse(solution.usedNodalSolver());
+        assertKirchhoffCurrentLaw(network, solution.fixedToAll());
+    }
+
+    @Test
+    public void testWheatstone() {
+        final var inner1 = "inner1";
+        final var inner2 = "inner2";
+        final var leaf = "leaf";
+        final var positive = "positive";
+        final var negative = "negative";
+        MutableNetwork<String> network = new MutableNetwork<>();
+        network.addResistor(inner1, inner2, 5)
+                .addResistor(negative, inner1, 4)
+                .addResistor(negative, inner2, 6)
+                .addResistor(positive, inner1, 5)
+                .addResistor(leaf, inner1, 1)
+                .addResistor(positive, inner2, 45);
+        network.markFixed(negative)
+                .markFixed(positive);
+        final var solution = SOLVER.solve(network);
+        assertTrue(solution.usedNodalSolver());
+        assertKirchhoffCurrentLaw(network, solution.fixedToAll());
     }
 
     private void assertFixed(NetworkTransformation<String> map, String node) {
